@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>This week's market | Enchanted by Jo</title>
+  <meta name="description" content="Small-batch San Francisco makers, picked weekly. Free delivery in San Francisco over $49 and San Mateo County over $89, or pick up.">
+  <meta name="theme-color" content="#FFF9FB">
+  <link rel="icon" href="assets/logo-round.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip" href="#market">Skip to this week's market</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <a href="index.html" aria-label="Enchanted by Jo, home"><img src="assets/logo.png" alt="Enchanted by Jo" class="logo"></a>
+        <span class="tagline">Delivers in 2 days</span>
+      </div>
+      <div class="top-actions">
+        <a class="pill-btn" href="signin.html">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+          Sign in
+        </a>
+        <a class="icon-btn" href="basket.html" id="basket-link" aria-label="Basket, empty">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2L5 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+          <span class="count" id="basket-count" hidden>0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="card welcome">
+      <h2>Ordered with us before?</h2>
+      <p>Sign in to see your past orders and reorder in one tap. No password needed, and no account needed to shop.</p>
+      <a class="btn btn-outline" href="signin.html">Sign in with my email</a>
+    </section>
+
+    <img class="banner" src="assets/banner.jpg" alt="Illustrated Enchanted neighborhood with a café, the Enchanted shop and a news stand">
+
+    <section class="delivery" aria-labelledby="delivery-h">
+      <div class="delivery-head">
+        <span class="delivery-icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>
+        </span>
+        <h2 id="delivery-h">Free delivery to your door</h2>
+      </div>
+      <div class="zones" id="zones">
+        <div class="zone"><span class="zone-name">San Francisco</span><span class="zone-rule">Orders over $49</span></div>
+        <div class="zone"><span class="zone-name">San Mateo County</span><span class="zone-rule">Orders over $89</span></div>
+      </div>
+      <p class="muted">Prefer to collect it yourself? Choose Pickup at checkout.</p>
+    </section>
+
+    <section id="market" class="market" aria-labelledby="market-h">
+      <div class="market-head">
+        <h1 id="market-h">This week's market</h1>
+        <p class="muted">Small-batch San Francisco makers, picked weekly.</p>
+      </div>
+
+      <div class="search">
+        <label for="search" class="sr">Search this week's items</label>
+        <input id="search" type="search" placeholder="Search this week's items" autocomplete="off">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      </div>
+
+      <div class="chips" id="chips" role="group" aria-label="Filter by category"></div>
+
+      <p class="status" id="status" role="status">Loading this week's items…</p>
+      <div class="grid" id="grid"></div>
+    </section>
+  </main>
+
+  <a class="basket-bar" id="basket-bar" href="basket.html" hidden>
+    <span id="basket-bar-text">0 items</span>
+    <span class="basket-bar-cta">View basket
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+    </span>
+  </a>
+
+  <dialog class="added" id="added" aria-labelledby="added-h">
+    <div class="added-head">
+      <div class="added-title">
+        <span class="tick" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>
+        <h2 id="added-h">Added to your basket</h2>
+      </div>
+      <button type="button" class="close" id="added-close" aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="added-item" id="added-item"></div>
+    <div class="added-actions">
+      <button type="button" class="btn btn-outline" id="keep-shopping">Keep shopping</button>
+      <a class="btn btn-primary" href="basket.html">View basket</a>
+    </div>
+    <div class="recs" id="recs-wrap">
+      <h3>Other customers also like</h3>
+      <div class="recs-row" id="recs"></div>
+    </div>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/basket.js"></script>
+  <script src="js/shop.js"></script>
+</body>
+</html>
