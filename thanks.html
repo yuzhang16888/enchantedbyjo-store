@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Thank you | Enchanted by Jo</title>
+  <meta name="theme-color" content="#FFF9FB">
+  <link rel="icon" href="logo-round.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <a href="index.html" aria-label="Enchanted by Jo, home"><img src="logo.png" alt="Enchanted by Jo" class="logo"></a>
+        <span class="tagline">Delivers in 2 days</span>
+      </div>
+      <div class="top-actions"><div id="account-slot"></div></div>
+    </div>
+  </header>
+  <main class="card notice">
+    <img src="logo-round.png" alt="">
+    <h1 id="thanks-h">Thank you!</h1>
+    <p>Your order is confirmed. A confirmation email with your pickup or delivery details is on its way, and Stripe will email your payment receipt.</p>
+    <p class="muted">We'll text you if anything changes.</p>
+    <a class="btn btn-primary" id="orders-link" href="account.html" hidden>See my orders</a>
+    <a class="btn btn-outline" href="index.html">Back to this week's market</a>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="basket.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    (function () {
+      var n = new URLSearchParams(location.search).get('order');
+      if (n && /^\d+$/.test(n)) document.getElementById('thanks-h').textContent = 'Thank you! Order #' + n + ' is confirmed.';
+      Basket.clear();
+      window.EnchantedAuth.ready.then(function (me) { if (me) document.getElementById('orders-link').hidden = false; });
+    })();
+  </script>
+</body>
+</html>

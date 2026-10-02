@@ -3,17 +3,123 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Your basket is saved | Enchanted by Jo</title>
+  <title>Your basket | Enchanted by Jo</title>
+  <meta name="theme-color" content="#FFF9FB">
   <link rel="icon" href="logo-round.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main class="card notice">
-    <img src="logo-round.png" alt="Enchanted by Jo">
-    <h1>Your basket is saved</h1>
-    <p class="muted">The basket and checkout page is the next room we build. Everything you added is remembered on this device.</p>
-    <a class="btn btn-primary" href="index.html">Back to this week's market</a>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <a href="index.html" aria-label="Enchanted by Jo, home"><img src="logo.png" alt="Enchanted by Jo" class="logo"></a>
+        <span class="tagline">Delivers in 2 days</span>
+      </div>
+      <div class="top-actions">
+        <div id="account-slot">
+          <a class="pill-btn" href="signin.html?next=basket.html">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+            Sign in
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page narrow">
+    <a class="back-link" href="index.html">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg>
+      Keep shopping
+    </a>
+    <h1 class="page-title">Your basket</h1>
+    <p class="notice-bar" id="cancelled-note" hidden>Payment wasn't completed, so nothing was charged. Your basket is still here.</p>
+    <p class="status" id="status" role="status">Loading your basket…</p>
+
+    <div id="empty" class="card empty" hidden>
+      <p>Your basket is empty.</p>
+      <a class="btn btn-primary" href="index.html">Browse this week's market</a>
+    </div>
+
+    <div id="checkout" class="checkout" hidden>
+      <section class="card lines" id="lines" aria-label="Items in your basket"></section>
+
+      <div class="field promo">
+        <label for="promo">Promo code</label>
+        <div class="promo-row">
+          <input id="promo" autocomplete="off" autocapitalize="characters" placeholder="e.g. a studio member code">
+          <button type="button" class="btn btn-outline" id="promo-apply">Apply</button>
+        </div>
+        <p class="field-error" id="promo-error" role="alert" hidden></p>
+        <p class="saved" id="promo-ok" role="status" hidden></p>
+      </div>
+
+      <dl class="summary" id="summary"></dl>
+
+      <form id="checkout-form" class="stack" novalidate>
+        <section class="card form-card" aria-labelledby="details-h">
+          <div class="card-head">
+            <h2 id="details-h">Your details</h2>
+            <span class="from-account" id="from-account" hidden>From your account</span>
+          </div>
+          <a class="hint-link" id="signin-hint" href="signin.html?next=basket.html">Ordered before? Sign in and we'll fill this in for you.</a>
+          <div class="two">
+            <div class="field"><label for="first">First name</label><input id="first" autocomplete="given-name" required></div>
+            <div class="field"><label for="last">Last name</label><input id="last" autocomplete="family-name"></div>
+          </div>
+          <div class="field"><label for="phone">Mobile number</label><input id="phone" type="tel" inputmode="tel" autocomplete="tel" required></div>
+          <div class="field"><label for="email">Email address</label><input id="email" type="email" inputmode="email" autocomplete="email" required></div>
+          <label class="check">
+            <input type="checkbox" id="save-details" checked>
+            <span><span class="check-title" id="save-title">Save my details for next time</span>
+            <span class="muted small" id="save-note">We'll set up your account with this email, so next time you just tap a sign-in link.</span></span>
+          </label>
+        </section>
+
+        <section class="stack" aria-labelledby="how-h">
+          <h2 id="how-h">How would you like your order?</h2>
+          <div class="segmented" role="group" aria-label="Pickup or delivery">
+            <button type="button" class="seg" id="seg-pickup" aria-pressed="true">Pickup</button>
+            <button type="button" class="seg" id="seg-delivery" aria-pressed="false">Delivery</button>
+          </div>
+
+          <div class="card form-card" id="pickup-box">
+            <div class="field"><label for="spot">Pickup spot</label><select id="spot"></select></div>
+            <div class="field"><label for="pickup-date">Pickup date</label><select id="pickup-date"></select>
+              <span class="muted small">Ready 2 full working days after you order. Closed Sundays and major holidays.</span></div>
+            <div class="field"><label for="window">Time window</label><select id="window"></select></div>
+          </div>
+
+          <div class="card form-card" id="delivery-box" hidden>
+            <fieldset class="field">
+              <legend>Delivery area</legend>
+              <div class="zone-choices" id="zone-choices"></div>
+            </fieldset>
+            <div class="field"><label for="street">Street address</label><input id="street" autocomplete="street-address" placeholder="Street and apartment"></div>
+            <div class="field"><label for="city">City</label><input id="city" autocomplete="address-level2" placeholder="e.g. San Francisco"></div>
+            <div class="field"><label for="delivery-date">Delivery date</label><select id="delivery-date"></select>
+              <span class="muted small">We'll text you to confirm a delivery window.</span></div>
+          </div>
+        </section>
+
+        <div class="field">
+          <label for="notes">Special requests (optional)</label>
+          <textarea id="notes" rows="3" maxlength="500"></textarea>
+        </div>
+
+        <p class="field-error big" id="pay-error" role="alert" hidden></p>
+        <button type="submit" class="btn btn-primary pay" id="pay-btn">Pay securely with card</button>
+        <p class="muted small center">You'll pay on Stripe's secure page with card, Apple Pay or Google Pay. Stripe emails your receipt.</p>
+      </form>
+    </div>
   </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="basket.js"></script>
+  <script src="auth.js"></script>
+  <script src="checkout.js"></script>
 </body>
 </html>

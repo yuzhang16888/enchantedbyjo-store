@@ -326,3 +326,52 @@ h1, h2, h3 { font-family: var(--display); margin: 0; line-height: 1.15; }
 .code-backup { border-top: 1px solid var(--line-2); padding-top: 10px; }
 .code-backup summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--rasp); font-weight: 500; }
 .code-backup-body { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; }
+
+/* ---------- Basket and checkout ---------- */
+.back-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; align-self: flex-start; text-decoration: none; font-weight: 500; }
+.page-title { font-size: 30px; font-weight: 700; }
+.notice-bar { margin: 0; padding: 12px 14px; border-radius: 12px; background: #FDE8C8; color: #5C3D0B; }
+.checkout { display: flex; flex-direction: column; gap: 20px; }
+.lines { padding: 4px 14px; }
+.line { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line-2); }
+.line:last-child { border-bottom: 0; }
+.line-thumb { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; background: var(--blush); flex-shrink: 0; }
+.line-info { display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0; }
+.line-name { font-weight: 500; }
+.line-price { font-size: 14px; font-weight: 600; }
+.small-stepper { width: 112px; flex-shrink: 0; }
+.promo-row { display: flex; gap: 8px; }
+.promo-row input { flex-grow: 1; min-width: 0; height: 48px; border: 1px solid var(--field); border-radius: 12px; padding: 0 14px; font-size: 16px; background: #fff; }
+.promo-row .btn { min-height: 48px; }
+.summary { margin: 0; padding: 16px; border-radius: 16px; background: var(--blush); display: flex; flex-direction: column; gap: 8px; }
+.sum-row { display: flex; justify-content: space-between; gap: 12px; }
+.sum-row dd { margin: 0; text-align: right; }
+.sum-row.total { border-top: 1px solid var(--field); padding-top: 10px; font-size: 18px; font-weight: 600; }
+.card-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.from-account { font-size: 13px; font-weight: 500; padding: 4px 10px; border-radius: 999px; background: var(--blush-2); color: var(--rasp-dark); white-space: nowrap; }
+.hint-link { display: flex; align-items: center; min-height: 44px; padding: 10px 12px; border-radius: 12px; background: var(--blush); color: var(--rasp-dark); text-decoration: none; font-size: 14.5px; }
+.hint-link[hidden] { display: none; }
+.check { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
+.check input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--rasp); flex-shrink: 0; }
+.check > span { display: flex; flex-direction: column; gap: 2px; }
+.check-title { font-weight: 500; font-size: 15.5px; }
+.segmented { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.seg { min-height: 56px; border-radius: 12px; border: 1px solid var(--field); background: #fff; font-size: 16px; font-weight: 500; cursor: pointer; }
+.seg[aria-pressed="true"] { border: 2px solid var(--rasp); background: var(--blush-2); }
+.seg[hidden] { display: none; }
+.segmented:has(.seg[hidden]) { grid-template-columns: 1fr; }
+.form-card select, .field select, .field textarea {
+  width: 100%; min-height: 48px; border: 1px solid var(--field); border-radius: 12px; padding: 0 12px; font-size: 16px; background: #fff;
+}
+.field textarea { padding: 12px 14px; resize: vertical; }
+.field label { font-size: 15px; font-weight: 500; }
+.zone-choices { display: flex; flex-direction: column; gap: 8px; }
+.zone-choice { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid var(--field); border-radius: 12px; cursor: pointer; }
+.zone-choice:has(input:checked) { border: 2px solid var(--rasp); background: var(--blush-2); }
+.zone-choice input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--rasp); }
+.zone-choice > span { display: flex; flex-direction: column; gap: 2px; }
+.field-error.big { padding: 12px 14px; border-radius: 12px; background: #FBE3E6; }
+.pay { min-height: 56px; font-size: 17px; font-weight: 600; }
+.pay:disabled { background: var(--field); cursor: not-allowed; }
+.center { text-align: center; }
+.line-price .each { font-weight: 400; }
