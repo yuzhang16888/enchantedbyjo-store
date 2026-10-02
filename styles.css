@@ -375,3 +375,4 @@ h1, h2, h3 { font-family: var(--display); margin: 0; line-height: 1.15; }
 .pay:disabled { background: var(--field); cursor: not-allowed; }
 .center { text-align: center; }
 .line-price .each { font-weight: 400; }
+.tax-tag { align-self: flex-start; font-size: 12px; font-weight: 500; padding: 1px 8px; border-radius: 999px; background: #FDE8C8; color: #7A4A0C; }

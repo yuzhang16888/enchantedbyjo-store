@@ -69,6 +69,7 @@
         el('div', { class: 'line-info' },
           l.p.vendor ? el('span', { class: 'maker-name', text: l.p.vendor.name }) : null,
           el('span', { class: 'line-name', text: l.name }),
+          l.taxable ? el('span', { class: 'tax-tag', text: 'Taxed' }) : null,
           el('span', { class: 'line-price' }, money(l.unit * l.qty),
             l.qty > 1 ? el('span', { class: 'muted small each', text: ' ' + money(l.unit) + ' each' }) : null)
         ),
@@ -83,7 +84,10 @@
     else if (!state.zoneId) rows.push(['Delivery', 'Choose your area']);
     else if (t.blocked) rows.push(['Delivery', 'From $' + (t.blocked.free_over_cents / 100).toFixed(0)]);
     else rows.push(['Delivery', t.fee ? money(t.fee) : 'Free']);
-    rows.push(['Sales tax', money(t.tax)]);
+    const taxedCount = lines.filter((l) => l.taxable).reduce((n, l) => n + l.qty, 0);
+    rows.push([taxedCount
+      ? 'Sales tax (' + state.taxRate + '% on ' + taxedCount + (taxedCount === 1 ? ' taxed item)' : ' taxed items)')
+      : 'Sales tax (food items are tax-free)', money(t.tax)]);
     $('summary').replaceChildren(
       ...rows.map(([k, v]) => el('div', { class: 'sum-row' }, el('dt', { text: k }), el('dd', { text: v }))),
       el('div', { class: 'sum-row total' }, el('dt', { text: 'Total' }), el('dd', { text: money(t.total) }))
