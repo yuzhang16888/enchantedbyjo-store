@@ -212,12 +212,18 @@
       const { data: { session } } = await sb.auth.getSession();
       const res = await fetch(cfg.supabaseUrl + '/functions/v1/create-checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', apikey: cfg.supabaseKey,
-          Authorization: 'Bearer ' + (session ? session.access_token : cfg.supabaseKey) },
+        // The public key goes in "apikey"; a login token is sent only when someone is signed in.
+        headers: Object.assign({ 'Content-Type': 'application/json', apikey: cfg.supabaseKey },
+          session ? { Authorization: 'Bearer ' + session.access_token } : {}),
         body: JSON.stringify(body)
       });
       const out = await res.json().catch(() => ({}));
-      if (!res.ok || !out.url) throw new Error(out.error || 'Something went wrong. Please try again in a moment.');
+      if (!res.ok || !out.url) {
+        // Show the helper's own message, or Supabase's code, so problems are easy to diagnose.
+        const detail = out.error || out.message || out.msg || '';
+        throw new Error(out.error ? out.error
+          : 'Payment couldn\u2019t start (' + res.status + (out.code ? ' ' + out.code : '') + ')' + (detail ? ': ' + detail : '') + '. Please try again in a moment.');
+      }
       window.location.href = out.url;
     } catch (err) {
       delete btn.dataset.busy;
