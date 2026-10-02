@@ -1,6 +1,5 @@
 (function () {
-  const cfg = window.ENCHANTED_CONFIG;
-  const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey);
+  const sb = window.sb;
 
   const els = {
     grid: document.getElementById('grid'),

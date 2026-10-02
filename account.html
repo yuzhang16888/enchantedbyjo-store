@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>My account | Enchanted by Jo</title>
+  <meta name="theme-color" content="#FFF9FB">
+  <link rel="icon" href="logo-round.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <a href="index.html" aria-label="Enchanted by Jo, home"><img src="logo.png" alt="Enchanted by Jo" class="logo"></a>
+        <span class="tagline">Delivers in 2 days</span>
+      </div>
+      <div class="top-actions">
+        <div id="account-slot"></div>
+        <a class="icon-btn" href="basket.html" aria-label="Basket">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2L5 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page narrow" id="account-main">
+    <p class="status" id="status" role="status">Loading your account…</p>
+
+    <div id="account" hidden>
+      <div class="account-hero">
+        <h1 id="hello">Hi</h1>
+        <p class="muted">Your orders and saved details, all in one place.</p>
+      </div>
+
+      <nav class="tabs" aria-label="Account sections">
+        <a href="#orders">My orders</a>
+        <a href="#details">My details</a>
+      </nav>
+
+      <section aria-labelledby="orders" class="stack">
+        <h2 id="orders">Your orders</h2>
+        <div id="order-list" class="stack"></div>
+      </section>
+
+      <section aria-labelledby="details" class="stack">
+        <h2 id="details">My details</h2>
+        <form class="card form-card" id="details-form" novalidate>
+          <div class="two">
+            <div class="field"><label for="first_name">First name</label><input id="first_name" autocomplete="given-name"></div>
+            <div class="field"><label for="last_name">Last name</label><input id="last_name" autocomplete="family-name"></div>
+          </div>
+          <div class="field"><label for="phone">Mobile number</label><input id="phone" type="tel" autocomplete="tel" inputmode="tel"></div>
+          <div class="field"><label for="email-show">Email</label><input id="email-show" type="email" disabled></div>
+          <fieldset class="field">
+            <legend>Usually, I like</legend>
+            <div class="choice-row">
+              <label class="choice"><input type="radio" name="usual" value="pickup"> Pickup</label>
+              <label class="choice"><input type="radio" name="usual" value="delivery"> Delivery</label>
+            </div>
+          </fieldset>
+          <div class="field"><label for="delivery_street">Delivery address</label><input id="delivery_street" autocomplete="street-address" placeholder="Street and apartment"></div>
+          <div class="field"><label for="delivery_city">City</label><input id="delivery_city" autocomplete="address-level2" placeholder="e.g. San Francisco or San Mateo"></div>
+          <p class="field-error" id="details-error" role="alert" hidden></p>
+          <p class="saved" id="details-saved" role="status" hidden>Saved. We'll fill these in for you at checkout.</p>
+          <button type="submit" class="btn btn-primary" id="save-btn">Save my details</button>
+        </form>
+      </section>
+
+      <button type="button" class="btn btn-quiet" id="logout-btn">Log out</button>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="basket.js"></script>
+  <script src="auth.js"></script>
+  <script src="account.js"></script>
+</body>
+</html>
