@@ -376,3 +376,24 @@ h1, h2, h3 { font-family: var(--display); margin: 0; line-height: 1.15; }
 .center { text-align: center; }
 .line-price .each { font-weight: 400; }
 .tax-tag { align-self: flex-start; font-size: 12px; font-weight: 500; padding: 1px 8px; border-radius: 999px; background: #FDE8C8; color: #7A4A0C; }
+
+/* ---------- Footer ---------- */
+.site-footer { border-top: 1px solid var(--line); background: #fff; margin-top: 24px; padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+.footer-inner { max-width: 1160px; margin: 0 auto; padding: 28px 18px; display: flex; flex-direction: column; gap: 14px; }
+.footer-logo { height: 26px; width: auto; align-self: flex-start; }
+.site-footer nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.site-footer nav a { min-height: 44px; display: inline-flex; align-items: center; color: var(--ink); text-decoration: none; font-weight: 500; }
+.site-footer nav a:hover { color: var(--rasp); text-decoration: underline; }
+.footer-small { margin: 0; font-size: 13px; color: var(--muted); }
+.page { padding-bottom: 40px; }
+
+/* ---------- Policy pages ---------- */
+.legal h1 { font-size: 32px; font-weight: 700; }
+.legal h2 { font-size: 21px; font-weight: 600; margin-top: 8px; }
+.legal p, .legal li { line-height: 1.65; }
+.legal p { margin: 0; }
+.legal ul { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+
+/* ---------- Contact ---------- */
+.trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.field[hidden] { display: none; }
