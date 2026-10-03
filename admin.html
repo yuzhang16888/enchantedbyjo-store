@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Back room | Enchanted by Jo</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#FFF9FB">
+  <link rel="icon" href="logo-round.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <aside class="admin-side">
+      <div class="admin-brand">
+        <img src="logo.png" alt="Enchanted by Jo" class="logo">
+        <span class="muted small">Back room</span>
+      </div>
+      <nav class="admin-nav" aria-label="Back room">
+        <a href="#orders" data-view="orders">Orders</a>
+        <a href="#products" data-view="products">Products</a>
+        <a href="#vendors" data-view="vendors">Vendors</a>
+        <a href="#customers" data-view="customers">Customers</a>
+        <a href="#messages" data-view="messages">Messages <span class="nav-badge" id="msg-badge" hidden></span></a>
+        <a href="#settings" data-view="settings">Settings</a>
+      </nav>
+      <div class="admin-side-foot">
+        <a href="index.html">View shop</a>
+        <button type="button" class="link-btn" id="admin-logout">Log out</button>
+      </div>
+    </aside>
+    <main class="admin-main" id="admin-main">
+      <p class="status" id="admin-status" role="status">Opening the back room…</p>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

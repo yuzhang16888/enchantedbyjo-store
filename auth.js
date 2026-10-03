@@ -66,6 +66,8 @@
       ),
       el('a', { href: 'account.html', class: 'menu-item' }, icon(['M6 3h9l4 4v14H6z', 'M9 12h7', 'M9 16h7'], 20), 'My orders'),
       el('a', { href: 'account.html#details', class: 'menu-item' }, icon(['M4 21a8 8 0 0 1 16 0', 'M12 4a4 4 0 1 0 0 8a4 4 0 1 0 0-8'], 20), 'My details'),
+      me.isAdmin ? el('a', { href: 'admin.html', class: 'menu-item' }, icon(['M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z'], 20), 'Back room') : null,
+      me.isAdmin ? el('a', { href: 'admin.html', class: 'menu-item' }, icon(['M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z'], 20), 'Back room') : null,
       el('div', { class: 'menu-divider' }),
       el('button', { type: 'button', class: 'menu-item logout', onclick: signOut }, icon(['M15 4h4v16h-4', 'M10 8l-4 4 4 4', 'M6 12h10'], 20), 'Log out')
     );
