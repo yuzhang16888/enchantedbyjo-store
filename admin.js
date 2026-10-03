@@ -606,8 +606,51 @@
 
     const tax = input({ value: String(setting('tax_rate') ?? ''), inputmode: 'decimal', class: 'a-input small-in', 'aria-label': 'Sales tax rate' });
 
+    // Photos still on the old Replit site
+    const [oldP, oldO, oldV] = await Promise.all([
+      run(sb.from('products').select('photo_url, photos')),
+      run(sb.from('product_options').select('photo_url')),
+      run(sb.from('vendors').select('logo_url'))
+    ]);
+    const isOldUrl = (u) => typeof u === 'string' && u.includes('/objects/uploads/');
+    const oldSet = new Set();
+    oldP.forEach((p) => { if (isOldUrl(p.photo_url)) oldSet.add(p.photo_url); (p.photos || []).forEach((u) => { if (isOldUrl(u)) oldSet.add(u); }); });
+    oldO.forEach((o) => { if (isOldUrl(o.photo_url)) oldSet.add(o.photo_url); });
+    oldV.forEach((v) => { if (isOldUrl(v.logo_url)) oldSet.add(v.logo_url); });
+    const photoReport = el('div', { class: 'a-rows' });
+    const photoBtn = el('button', { type: 'button', class: 'a-btn primary', text: 'Move photos from old site', disabled: oldSet.size === 0 });
+    photoBtn.addEventListener('click', async () => {
+      photoBtn.disabled = true; photoBtn.textContent = 'Moving photos\u2026 this can take a minute or two';
+      try {
+        const cfg = window.ENCHANTED_CONFIG;
+        const { data: { session } } = await sb.auth.getSession();
+        const res = await fetch(cfg.supabaseUrl + '/functions/v1/copy-photos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', apikey: cfg.supabaseKey, Authorization: 'Bearer ' + (session ? session.access_token : '') },
+          body: '{}'
+        });
+        const out = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(out.error || out.message || ('the helper answered ' + res.status));
+        photoReport.replaceChildren(
+          el('p', { class: 'saved', text: 'Moved ' + out.moved + ' of ' + out.found + ' photos, and updated ' + out.updated + ' products, options and logos.' }),
+          out.remaining ? el('p', { class: 'muted small', text: out.remaining + ' photos are still waiting. Press the button again to finish.' }) : null,
+          ...(out.failed || []).map((f) => el('p', { class: 'field-error', text: 'Couldn\u2019t move ' + f.url.split('/').pop() + ': ' + f.reason })));
+        photoBtn.textContent = out.remaining || (out.failed || []).length ? 'Try again for the rest' : 'All photos moved';
+        photoBtn.disabled = !(out.remaining || (out.failed || []).length);
+        cache.products = [];
+      } catch (e) {
+        photoReport.replaceChildren(el('p', { class: 'field-error', text: 'Photos didn\u2019t move: ' + e.message }));
+        photoBtn.disabled = false; photoBtn.textContent = 'Move photos from old site';
+      }
+    });
+
     main.replaceChildren(
       header('Settings', 'Changes here show on the shop right away.'),
+      el('section', { class: 'a-card a-pad' }, el('h2', { text: 'Photos on the old site' }),
+        el('p', { class: 'muted small', text: oldSet.size
+          ? oldSet.size + ' photos still live on the old Replit site. Move them before enchantedbyjo.com switches to the new site, or they\u2019ll disappear.'
+          : 'All photos live in your own photo shelf. Nothing to move.' }),
+        el('div', { class: 'a-row' }, photoBtn), photoReport),
       el('section', { class: 'a-card a-pad' }, el('h2', { text: 'Pickup spots' }), spotRows,
         el('div', { class: 'a-row' }, newSpot, el('button', { type: 'button', class: 'a-btn primary', text: '+ Add spot', onclick: async () => {
           if (!newSpot.value.trim()) return;
