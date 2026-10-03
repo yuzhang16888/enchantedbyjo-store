@@ -16,7 +16,11 @@
     const summary = items.map((i) => i.product_name + (i.option_label ? ' (' + i.option_label + ')' : '') + (i.quantity > 1 ? ' × ' + i.quantity : '')).join(', ');
     const count = items.reduce((n, i) => n + i.quantity, 0);
     const date = new Date(o.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const [label, cls] = STATUS[o.status] || [o.status, 'st-done'];
+    let [label, cls] = STATUS[o.status] || [o.status, 'st-done'];
+    if (o.fulfillment === 'delivery' && o.status === 'ready') label = 'On the way';
+    if (o.fulfillment === 'delivery' && o.status === 'completed') label = 'Delivered';
+    if (o.fulfillment === 'pickup' && o.status === 'ready') label = 'Ready for pickup';
+    if (o.fulfillment === 'pickup' && o.status === 'completed') label = 'Picked up';
     const where = o.fulfillment === 'pickup' ? 'Pickup' : 'Delivery' + (o.delivery_city ? ' to ' + o.delivery_city : '');
     return el('article', { class: 'card order' },
       el('div', { class: 'order-top' },

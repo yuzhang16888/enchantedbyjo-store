@@ -105,6 +105,13 @@
     completed: ['Completed', 'st-done', null, null],
     cancelled: ['Cancelled', 'st-done', null, null]
   };
+  function statusLabel(o) {
+    const st = STATUS[o.status] || STATUS.new;
+    if (o.fulfillment !== 'delivery') return st;
+    if (o.status === 'preparing') return [st[0], st[1], st[2], 'Mark out for delivery'];
+    if (o.status === 'ready') return ['Out for delivery', st[1], st[2], 'Mark delivered'];
+    return st;
+  }
   let orderFilter = 'upcoming';
   async function viewOrders() {
     loading();
@@ -132,7 +139,7 @@
           onclick: () => { orderFilter = k; drawChips(); drawList(); } })));
     }
     function orderCard(o) {
-      const [label, cls, next, nextLabel] = STATUS[o.status] || STATUS.new;
+      const [label, cls, next, nextLabel] = statusLabel(o);
       const where = o.fulfillment === 'pickup'
         ? 'Pickup: ' + (o.pickup_spot_name || '') + (o.pickup_window_label ? ', ' + o.pickup_window_label : '')
         : 'Delivery: ' + [o.delivery_street, o.delivery_city].filter(Boolean).join(', ') + (o.delivery_zone_name ? ' (' + o.delivery_zone_name + ')' : '');
@@ -154,15 +161,33 @@
         el('div', { class: 'a-order-foot' },
           el('span', { class: 'muted small', text: 'Paid ' + money(o.total_cents) + (o.discount_cents ? ' (incl. ' + money(-o.discount_cents) + ' discount)' : '') + ', ordered ' + when(o.created_at) }),
           el('div', { class: 'a-actions' },
-            next ? el('button', { type: 'button', class: 'a-btn primary', text: nextLabel, onclick: () => setStatus(o, next) }) : null,
+            next ? el('button', { type: 'button', class: 'a-btn primary', text: nextLabel + (['ready', 'completed'].includes(next) ? ' \u2709' : ''),
+              title: ['ready', 'completed'].includes(next) ? 'Also emails the customer' : null, onclick: (e) => { e.currentTarget.disabled = true; setStatus(o, next); } }) : null,
             ['new', 'preparing'].includes(o.status) ? el('button', { type: 'button', class: 'a-btn quiet', text: 'Cancel order', onclick: () => {
               if (confirm('Cancel order #' + o.id + '? This doesn\u2019t refund the card; refund it in Stripe if needed.')) setStatus(o, 'cancelled');
             } }) : null)));
       return card;
     }
+    // Status changes go through the order-status helper, which also emails the customer.
     async function setStatus(o, status) {
-      await run(sb.from('orders').update({ status }).eq('id', o.id), 'Order #' + o.id + ': ' + STATUS[status][0]);
-      o.status = status; drawList();
+      const cfg = window.ENCHANTED_CONFIG;
+      const { data: { session } } = await sb.auth.getSession();
+      try {
+        const res = await fetch(cfg.supabaseUrl + '/functions/v1/order-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', apikey: cfg.supabaseKey, Authorization: 'Bearer ' + (session ? session.access_token : '') },
+          body: JSON.stringify({ orderId: o.id, status })
+        });
+        const out = await res.json().catch(() => ({}));
+        if (!res.ok || !out.ok) throw new Error(out.error || out.message || ('the helper answered ' + res.status));
+        o.status = status; drawList();
+        const label = statusLabel(o)[0];
+        if (String(out.email).startsWith('sent')) toast('Order #' + o.id + ': ' + label + '. Email ' + out.email + '.');
+        else if (String(out.email).startsWith('not sent')) toast('Order #' + o.id + ': ' + label + ', but the email was ' + out.email + '.', true);
+        else toast('Order #' + o.id + ': ' + label);
+      } catch (e) {
+        toast('Couldn\u2019t update order #' + o.id + ': ' + e.message, true);
+      }
     }
     function drawList() {
       const shown = orders.filter(matches);
