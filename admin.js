@@ -668,6 +668,18 @@
 
     const tax = input({ value: String(setting('tax_rate') ?? ''), inputmode: 'decimal', class: 'a-input small-in', 'aria-label': 'Sales tax rate' });
 
+    // Welcome email
+    const wcfg = Object.assign({ enabled: false, code: null }, setting('welcome_email') || {});
+    const usable = codes.filter((c) => c.active && !isOld(c) && !c.email);
+    const wOn = toggle('Send a welcome email to new customers', wcfg.enabled);
+    const wCode = select([['', 'Choose a promo code'], ...usable.map((c) => [c.code, c.code + ' (' + (c.percent_off ? c.percent_off + '% off' : money(c.amount_off_cents) + ' off') + ')'])], wcfg.code || '', { 'aria-label': 'Welcome promo code' });
+    const saveWelcome = el('button', { type: 'button', class: 'a-btn primary', text: 'Save', onclick: async () => {
+      const enabled = wOn.querySelector('input').checked;
+      if (enabled && !wCode.value) return toast('Choose a promo code for the welcome email', true);
+      await run(sb.from('settings').upsert({ key: 'welcome_email', value: { enabled, code: wCode.value || null } }),
+        enabled ? 'Welcome email is on, with ' + wCode.value : 'Welcome email is off');
+    } });
+
     // Photos still on the old Replit site
     const [oldP, oldO, oldV] = await Promise.all([
       run(sb.from('products').select('photo_url, photos')),
@@ -713,6 +725,10 @@
           ? oldSet.size + ' photos still live on the old Replit site. Move them before enchantedbyjo.com switches to the new site, or they\u2019ll disappear.'
           : 'All photos live in your own photo shelf. Nothing to move.' }),
         el('div', { class: 'a-row' }, photoBtn), photoReport),
+      el('section', { class: 'a-card a-pad' }, el('h2', { text: 'Welcome email' }),
+        el('p', { class: 'muted small', text: 'Sent once, right after someone signs in for the first time, if they haven\u2019t ordered yet. It includes your logo, banner and the promo code below.' }),
+        wOn, el('div', { class: 'a-row' }, wCode, saveWelcome),
+        el('p', { class: 'muted small', text: 'Only active codes without an end date in the past are listed. Add new codes under Promo codes below.' })),
       el('section', { class: 'a-card a-pad' }, el('h2', { text: 'Pickup spots' }), spotRows,
         el('div', { class: 'a-row' }, newSpot, el('button', { type: 'button', class: 'a-btn primary', text: '+ Add spot', onclick: async () => {
           if (!newSpot.value.trim()) return;
