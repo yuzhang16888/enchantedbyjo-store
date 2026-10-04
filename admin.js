@@ -472,63 +472,100 @@
   }
 
   // ---------- CUSTOMERS ----------
+  let customerFilter = 'all';
   async function viewCustomers() {
     loading();
-    const [customers, orders] = await Promise.all([
+    const [allCustomers, orders, signIns, admins] = await Promise.all([
       run(sb.from('customers').select('*').order('created_at', { ascending: false })),
-      run(sb.from('orders').select('customer_id, contact_email, total_cents, created_at, status').eq('payment_status', 'paid'))
+      run(sb.from('orders').select('customer_id, contact_email, total_cents, created_at, status').eq('payment_status', 'paid')),
+      sb.rpc('admin_sign_in_info').then((r) => r.data || []),   // empty if step 8 hasn't been run yet
+      run(sb.from('admins').select('user_id'))
     ]);
+    const adminIds = new Set(admins.map((a) => a.user_id));
+    const customers = allCustomers.filter((c) => !adminIds.has(c.id));   // the Enchanted team isn't counted as customers
+    const signIn = {};
+    signIns.forEach((u) => { signIn[u.id] = u; });
+    const haveSignInInfo = signIns.length > 0;
     const stats = {};
     orders.filter((o) => o.status !== 'cancelled').forEach((o) => {
       const k = o.customer_id; if (!k) return;
       const s = stats[k] || (stats[k] = { n: 0, spent: 0, last: null });
       s.n += 1; s.spent += o.total_cents; if (!s.last || o.created_at > s.last) s.last = o.created_at;
     });
+    const nOrders = (c) => (stats[c.id] || {}).n || 0;
+    const finished = (c) => !haveSignInInfo || !!(signIn[c.id] && signIn[c.id].confirmed_at);
     const weekAgo = Date.now() - 7 * 864e5, monthAgo = Date.now() - 30 * 864e5;
-    const repeat = customers.filter((c) => (stats[c.id] || {}).n >= 2).length;
-    const joined = customers.filter((c) => new Date(c.created_at).getTime() >= weekAgo).length;
+    const repeat = customers.filter((c) => nOrders(c) >= 2).length;
+    const joined = customers.filter((c) => finished(c) && new Date(c.created_at).getTime() >= weekAgo).length;
     const quiet = customers.filter((c) => (stats[c.id] || {}).last && new Date(stats[c.id].last).getTime() < monthAgo).length;
-    const guests = orders.filter((o) => !o.customer_id && o.status !== 'cancelled').length;
+    const noOrders = customers.filter((c) => nOrders(c) === 0 && finished(c)).length;
+    const unfinished = customers.filter((c) => !finished(c)).length;
+
+    const FILTERS = [
+      ['all', 'All customers', () => true],
+      ['none', 'Signed in, no orders yet', (c) => nOrders(c) === 0 && finished(c)],
+      ['once', 'Ordered once', (c) => nOrders(c) === 1],
+      ['repeat', 'Repeat customers', (c) => nOrders(c) >= 2],
+      ['unfinished', 'Never finished signing in', (c) => !finished(c)]
+    ];
     const search = input({ type: 'search', placeholder: 'Search name, email or phone', 'aria-label': 'Search customers' });
-    const sortSel = select([['new', 'Newest first'], ['orders', 'Most orders'], ['last', 'Last order']], 'new', { 'aria-label': 'Sort' });
+    const filterSel = select(FILTERS.map(([k, label]) => [k, label]), customerFilter, { 'aria-label': 'Show' });
+    const sortSel = select([['new', 'Newest first'], ['orders', 'Most orders'], ['last', 'Last order'], ['signin', 'Last sign-in']], 'new', { 'aria-label': 'Sort' });
     const body = el('tbody');
-    function draw() {
+    const countLine = el('p', { class: 'muted small' });
+    function shownRows() {
       const q = search.value.trim().toLowerCase();
-      let rows = customers.filter((c) => !q || [c.first_name, c.last_name, c.email, c.phone].join(' ').toLowerCase().includes(q));
-      if (sortSel.value === 'orders') rows.sort((a, b) => ((stats[b.id] || {}).n || 0) - ((stats[a.id] || {}).n || 0));
+      const f = (FILTERS.find(([k]) => k === filterSel.value) || FILTERS[0])[2];
+      let rows = customers.filter((c) => f(c) && (!q || [c.first_name, c.last_name, c.email, c.phone].join(' ').toLowerCase().includes(q)));
+      if (sortSel.value === 'orders') rows.sort((a, b) => nOrders(b) - nOrders(a));
       if (sortSel.value === 'last') rows.sort((a, b) => String((stats[b.id] || {}).last || '').localeCompare(String((stats[a.id] || {}).last || '')));
+      if (sortSel.value === 'signin') rows.sort((a, b) => String((signIn[b.id] || {}).last_sign_in_at || '').localeCompare(String((signIn[a.id] || {}).last_sign_in_at || '')));
+      return rows;
+    }
+    function draw() {
+      customerFilter = filterSel.value;
+      const rows = shownRows();
+      countLine.textContent = rows.length + (rows.length === 1 ? ' customer' : ' customers') + ' shown.';
       body.replaceChildren(...rows.map((c) => {
         const s = stats[c.id] || { n: 0, spent: 0, last: null };
+        const si = signIn[c.id] || {};
         return el('tr', {},
           el('td', {}, el('strong', { text: [c.first_name, c.last_name].filter(Boolean).join(' ') || '(no name yet)' }),
-            s.n >= 2 ? el('span', { class: 'a-tag', text: 'Repeat' }) : null),
+            s.n >= 2 ? el('span', { class: 'a-tag', text: 'Repeat' }) : null,
+            !finished(c) ? el('span', { class: 'a-tag quiet', text: 'Never finished signing in' }) : null),
           el('td', {}, el('a', { href: 'mailto:' + c.email, text: c.email })),
           el('td', { text: c.phone || '' }),
           el('td', { text: shortDate(c.created_at) }),
+          el('td', { text: si.last_sign_in_at ? shortDate(si.last_sign_in_at) : '' }),
           el('td', { text: String(s.n) }),
           el('td', { text: money(s.spent) }),
           el('td', { text: s.last ? shortDate(s.last) : '' }));
       }));
     }
     function downloadCsv() {
+      const rows = shownRows();
       const q = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"';
       const lines = [['Email Address', 'First Name', 'Last Name', 'Phone', 'Joined', 'Orders'].join(',')]
-        .concat(customers.map((c) => [c.email, c.first_name, c.last_name, c.phone, shortDate(c.created_at), (stats[c.id] || {}).n || 0].map(q).join(',')));
-      const a = el('a', { href: URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })), download: 'enchanted-customers.csv' });
+        .concat(rows.map((c) => [c.email, c.first_name, c.last_name, c.phone, shortDate(c.created_at), nOrders(c)].map(q).join(',')));
+      const name = 'enchanted-customers-' + filterSel.value + '.csv';
+      const a = el('a', { href: URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })), download: name });
       document.body.append(a); a.click(); a.remove();
+      toast('Downloaded ' + rows.length + ' customers');
     }
-    search.addEventListener('input', draw); sortSel.addEventListener('change', draw);
+    search.addEventListener('input', draw); sortSel.addEventListener('change', draw); filterSel.addEventListener('change', draw);
     main.replaceChildren(
-      header('Customers', 'Everyone with an account. Guest orders are counted separately.',
-        el('button', { type: 'button', class: 'a-btn', text: 'Download list for Mailchimp', onclick: downloadCsv })),
+      header('Customers', 'Everyone who has signed up. The download matches what\u2019s shown.',
+        el('button', { type: 'button', class: 'a-btn', text: 'Download shown list for Mailchimp', onclick: downloadCsv })),
       el('div', { class: 'a-stats' },
-        statCard('Customers with accounts', customers.length, joined + ' joined this week'),
+        statCard('Customers with accounts', customers.length - unfinished, joined + ' joined this week'),
+        statCard('Signed in, no orders yet', noOrders, 'Worth a friendly nudge'),
         statCard('Repeat customers', repeat, 'Ordered 2 or more times'),
-        statCard('Guest orders', guests, 'Didn\u2019t save details'),
-        statCard('Not back in 30 days', quiet, 'Worth a friendly email')),
-      el('div', { class: 'a-toolbar' }, search, sortSel),
+        statCard('Not back in 30 days', quiet, 'Ordered before, quiet lately')),
+      haveSignInInfo ? null : el('p', { class: 'notice-bar', text: 'Run the step 8 recipe in Supabase to see sign-in dates and who never finished signing in.' }),
+      el('div', { class: 'a-toolbar' }, filterSel, search, sortSel),
+      countLine,
       el('div', { class: 'a-card a-table-wrap' }, el('table', { class: 'a-table' },
-        el('thead', {}, el('tr', {}, ...['Customer', 'Email', 'Phone', 'Joined', 'Orders', 'Spent', 'Last order'].map((h) => el('th', { scope: 'col', text: h })))),
+        el('thead', {}, el('tr', {}, ...['Customer', 'Email', 'Phone', 'Joined', 'Last sign-in', 'Orders', 'Spent', 'Last order'].map((h) => el('th', { scope: 'col', text: h })))),
         body)));
     draw();
   }
@@ -631,6 +668,18 @@
 
     const tax = input({ value: String(setting('tax_rate') ?? ''), inputmode: 'decimal', class: 'a-input small-in', 'aria-label': 'Sales tax rate' });
 
+    // Welcome email
+    const wcfg = Object.assign({ enabled: false, code: null }, setting('welcome_email') || {});
+    const usable = codes.filter((c) => c.active && !isOld(c) && !c.email);
+    const wOn = toggle('Send a welcome email to new customers', wcfg.enabled);
+    const wCode = select([['', 'Choose a promo code'], ...usable.map((c) => [c.code, c.code + ' (' + (c.percent_off ? c.percent_off + '% off' : money(c.amount_off_cents) + ' off') + ')'])], wcfg.code || '', { 'aria-label': 'Welcome promo code' });
+    const saveWelcome = el('button', { type: 'button', class: 'a-btn primary', text: 'Save', onclick: async () => {
+      const enabled = wOn.querySelector('input').checked;
+      if (enabled && !wCode.value) return toast('Choose a promo code for the welcome email', true);
+      await run(sb.from('settings').upsert({ key: 'welcome_email', value: { enabled, code: wCode.value || null } }),
+        enabled ? 'Welcome email is on, with ' + wCode.value : 'Welcome email is off');
+    } });
+
     // Photos still on the old Replit site
     const [oldP, oldO, oldV] = await Promise.all([
       run(sb.from('products').select('photo_url, photos')),
@@ -676,6 +725,10 @@
           ? oldSet.size + ' photos still live on the old Replit site. Move them before enchantedbyjo.com switches to the new site, or they\u2019ll disappear.'
           : 'All photos live in your own photo shelf. Nothing to move.' }),
         el('div', { class: 'a-row' }, photoBtn), photoReport),
+      el('section', { class: 'a-card a-pad' }, el('h2', { text: 'Welcome email' }),
+        el('p', { class: 'muted small', text: 'Sent once, right after someone signs in for the first time, if they haven\u2019t ordered yet. It includes your logo, banner and the promo code below.' }),
+        wOn, el('div', { class: 'a-row' }, wCode, saveWelcome),
+        el('p', { class: 'muted small', text: 'Only active codes without an end date in the past are listed. Add new codes under Promo codes below.' })),
       el('section', { class: 'a-card a-pad' }, el('h2', { text: 'Pickup spots' }), spotRows,
         el('div', { class: 'a-row' }, newSpot, el('button', { type: 'button', class: 'a-btn primary', text: '+ Add spot', onclick: async () => {
           if (!newSpot.value.trim()) return;

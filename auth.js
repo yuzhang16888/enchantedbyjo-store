@@ -93,10 +93,25 @@
     );
   }
 
+  // First sign-in: ask the welcome-email helper to send the welcome (it decides whether to).
+  function maybeWelcome(me) {
+    if (!me || me.isAdmin || !me.customer || me.customer.welcome_email_at) return;
+    try { if (sessionStorage.getItem('enchanted_welcome_checked')) return; sessionStorage.setItem('enchanted_welcome_checked', '1'); } catch (e) { /* ignore */ }
+    sb.auth.getSession().then(({ data: { session } }) => {
+      if (!session) return;
+      const cfg = window.ENCHANTED_CONFIG;
+      fetch(cfg.supabaseUrl + '/functions/v1/welcome-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: cfg.supabaseKey, Authorization: 'Bearer ' + session.access_token },
+        body: '{}'
+      }).catch(() => { /* a missed welcome isn't worth bothering the shopper about */ });
+    });
+  }
+
   // Other pages wait on this promise, so it never matters which script finishes first.
   const ready = currentCustomer()
     .catch((err) => { console.error(err); return null; })
-    .then((me) => { renderNameTag(me); renderWelcome(me); return me; });
+    .then((me) => { renderNameTag(me); renderWelcome(me); maybeWelcome(me); return me; });
 
   window.EnchantedAuth = { currentCustomer, displayName, signOut, el, icon, ready };
 })();
