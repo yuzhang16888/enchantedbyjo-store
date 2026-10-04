@@ -139,3 +139,4 @@ textarea.a-input { padding: 10px 12px; line-height: 1.5; resize: vertical; }
   .admin-main { padding: 0; }
   .a-prep-wrap { border: 0; }
 }
+.a-tag.quiet { background: #F1ECEF; color: #4E4450; }
