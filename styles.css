@@ -143,11 +143,11 @@ h1, h2, h3 { font-family: var(--display); margin: 0; line-height: 1.15; }
 .maker-name { font-size: 13px; font-weight: 500; line-height: 1.2; color: var(--rasp); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .product h3 { font-family: var(--body); font-size: 16px; font-weight: 500; line-height: 1.3; min-height: 2.6em;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.options { display: flex; flex-wrap: nowrap; gap: 6px; min-height: 44px; overflow-x: auto; scrollbar-width: none;
-  margin: 0 -12px; padding: 0 12px; scroll-padding: 0 12px; }
-.options::-webkit-scrollbar { display: none; }
+/* Options wrap onto as many rows as they need. */
+.options { display: flex; flex-wrap: wrap; gap: 6px; }
+.options:empty { display: none; }
 .opt {
-  flex-shrink: 0; white-space: nowrap; min-height: 44px; padding: 6px 10px; border-radius: 10px; text-align: left; cursor: pointer;
+  max-width: 100%; white-space: normal; min-height: 44px; padding: 6px 10px; border-radius: 10px; text-align: left; cursor: pointer;
   border: 1px solid var(--field); background: #fff; font-size: 13.5px; font-weight: 500; line-height: 1.2;
 }
 .opt[aria-pressed="true"] { border: 2px solid var(--rasp); background: var(--blush-2); }
