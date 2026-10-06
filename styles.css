@@ -398,3 +398,19 @@ h1, h2, h3 { font-family: var(--display); margin: 0; line-height: 1.15; }
 /* ---------- Contact ---------- */
 .trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .field[hidden] { display: none; }
+
+/* ---------- Maker pages ---------- */
+.maker-link { position: relative; text-decoration: none; }
+.maker-link::after { content: ''; position: absolute; inset: -8px 0; }   /* bigger tap area, same layout */
+.maker-link .maker-name { text-decoration: underline; text-underline-offset: 3px; }
+.crumb { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 15px; font-weight: 500; text-decoration: none; }
+.maker-hero { display: flex; align-items: center; gap: 14px; }
+.maker-hero-logo { width: 72px; height: 72px; border-radius: 50%; background: var(--blush); border: 1px solid var(--line); overflow: hidden; flex-shrink: 0; }
+.maker-hero-logo:empty { display: none; }
+.maker-hero-logo img { width: 100%; height: 100%; object-fit: cover; }
+.maker-hero .eyebrow { font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--rasp); }
+.maker-hero h1 { font-size: 32px; font-weight: 700; }
+.maker-lede { margin: 0; font-size: 17px; }
+.maker-story { display: flex; flex-direction: column; gap: 8px; }
+.maker-story h2, .market-head h2 { font-size: 22px; font-weight: 600; }
+.maker-story p { margin: 0; line-height: 1.65; }

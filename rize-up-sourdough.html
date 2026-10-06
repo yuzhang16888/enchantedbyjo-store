@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Rize Up Sourdough Delivery in San Francisco | Enchanted by Jo</title>
+  <meta name="description" content="Order Rize Up sourdough for delivery or pickup in San Francisco. Fresh loaves each week, free delivery in San Francisco over $49.">
+  <link rel="canonical" href="https://enchantedbyjo.com/rize-up-sourdough">
+  <meta property="og:title" content="Rize Up Sourdough Delivery in San Francisco | Enchanted by Jo">
+  <meta property="og:description" content="Order Rize Up sourdough for delivery or pickup in San Francisco. Fresh loaves each week.">
+  <meta property="og:url" content="https://enchantedbyjo.com/rize-up-sourdough">
+  <meta property="og:image" content="https://enchantedbyjo.com/banner.jpg">
+  <meta name="theme-color" content="#FFF9FB">
+  <link rel="icon" href="logo-round.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-maker="rize up">
+  <a class="skip" href="#market">Skip to this week's Rize Up items</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <a href="index.html" aria-label="Enchanted by Jo, home"><img src="logo.png" alt="Enchanted by Jo" class="logo"></a>
+        <span class="tagline">Delivers in 2 days</span>
+      </div>
+      <div class="top-actions">
+        <div id="account-slot">
+          <a class="pill-btn" href="signin.html">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+            Sign in
+          </a>
+        </div>
+        <a class="icon-btn" href="basket.html" id="basket-link" aria-label="Basket, empty">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2L5 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+          <span class="count" id="basket-count" hidden>0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <a class="crumb" href="index.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+      This week's market
+    </a>
+
+    <div class="maker-hero">
+      <div class="maker-hero-logo" id="maker-logo"></div>
+      <div>
+        <span class="eyebrow">Our makers</span>
+        <h1>Rize Up Sourdough</h1>
+      </div>
+    </div>
+    <p class="maker-lede">San Francisco sourdough from Rize Up Bakery, delivered to your door or ready for pickup.</p>
+
+    <section class="maker-story" aria-labelledby="story-h">
+      <h2 id="story-h">About Rize Up</h2>
+      <!-- JO: please check these sentences are true and sound like you before publishing. -->
+      <p>Rize Up Bakery was started in San Francisco in 2020 by Azikiwee &ldquo;Z&rdquo; Anderson, a chef who began baking sourdough at home during the pandemic. The name has two meanings: the way dough rises, and standing up for what is right.</p>
+      <p>Today Z and his team bake in SoMa. They are known for sourdough in flavors you don't expect from a San Francisco loaf, like purple ube and masala, alongside the classic OG loaf.</p>
+    </section>
+
+    <section id="market" class="market" aria-labelledby="market-h">
+      <div class="market-head">
+        <h2 id="market-h">This week from Rize Up</h2>
+        <p class="muted">Order by loaf. We deliver in 2 days, or you can pick up.</p>
+      </div>
+      <p class="status" id="status" role="status">Loading this week's Rize Up items…</p>
+      <div class="grid" id="grid"></div>
+      <a class="btn btn-outline" href="index.html">See everything in this week's market</a>
+    </section>
+
+    <section class="delivery" aria-labelledby="delivery-h">
+      <div class="delivery-head">
+        <span class="delivery-icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>
+        </span>
+        <h2 id="delivery-h">Free delivery to your door</h2>
+      </div>
+      <div class="zones" id="zones">
+        <div class="zone"><span class="zone-name">San Francisco</span><span class="zone-rule">Orders over $49</span><span class="zone-fee">$4.99 delivery below that</span></div>
+        <div class="zone"><span class="zone-name">San Mateo County</span><span class="zone-rule">Orders over $89</span><span class="zone-fee">$9.99 delivery below that</span></div>
+      </div>
+      <p class="muted">Prefer to collect it yourself? Choose Pickup at checkout.</p>
+    </section>
+  </main>
+
+  <a class="basket-bar" id="basket-bar" href="basket.html" hidden>
+    <span id="basket-bar-text">0 items</span>
+    <span class="basket-bar-cta">View basket
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+    </span>
+  </a>
+
+  <dialog class="added" id="added" aria-labelledby="added-h">
+    <div class="added-head">
+      <div class="added-title">
+        <span class="tick" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>
+        <h2 id="added-h">Added to your basket</h2>
+      </div>
+      <button type="button" class="close" id="added-close" aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="added-item" id="added-item"></div>
+    <div class="added-actions">
+      <button type="button" class="btn btn-outline" id="keep-shopping">Keep shopping</button>
+      <a class="btn btn-primary" href="basket.html">View basket</a>
+    </div>
+    <div class="recs" id="recs-wrap">
+      <h3>Other customers also like</h3>
+      <div class="recs-row" id="recs"></div>
+    </div>
+  </dialog>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <img src="logo.png" alt="Enchanted by Jo" class="footer-logo">
+      <nav aria-label="Footer">
+        <a href="returns.html">Returns &amp; refunds</a>
+        <a href="privacy.html">Privacy policy</a>
+        <a href="contact.html">Contact us</a>
+        <a href="https://www.instagram.com/enchantedbyjo/" rel="noopener">Instagram</a>
+      </nav>
+      <p class="footer-small">&copy; 2026 Enchanted by Jo, LLC. Small-batch makers, San Francisco.</p>
+    </div>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="basket.js"></script>
+  <script src="auth.js"></script>
+  <script src="shop.js"></script>
+</body>
+</html>

@@ -25,6 +25,19 @@
     chosen: new Map()      // productId -> optionId
   };
 
+  // Makers who have their own page. "match" is looked for inside the maker's name (lower case).
+  const MAKER_PAGES = [
+    { match: 'rize up', href: 'rize-up-sourdough.html' }
+  ];
+  function makerPage(name) {
+    const n = (name || '').toLowerCase();
+    const m = MAKER_PAGES.find((x) => n.includes(x.match));
+    return m ? m.href : null;
+  }
+  // On a maker's own page, <body data-maker="rize up"> shows only that maker's items.
+  const ONLY_MAKER = (document.body.dataset.maker || '').toLowerCase();
+  const isOnlyMaker = (p) => !ONLY_MAKER || !!(p.vendor && p.vendor.name.toLowerCase().includes(ONLY_MAKER));
+
   const BADGES = { new: 'New', popular: 'Popular', seasonal: 'Seasonal', popup: 'Pop-up' };
 
   // ---------- helpers ----------
@@ -95,6 +108,7 @@
 
   // ---------- render ----------
   function renderChips() {
+    if (!els.chips) return;
     els.chips.replaceChildren(
       ...[{ slug: 'all', name: 'All' }, ...state.categories].map((c) =>
         el('button', {
@@ -108,6 +122,7 @@
   function visibleProducts() {
     const q = state.query.trim().toLowerCase();
     return state.products.filter((p) => {
+      if (!isOnlyMaker(p)) return false;
       if (state.cat !== 'all' && (!p.category || p.category.slug !== state.cat)) return false;
       if (!q) return true;
       const hay = [p.name, p.description, p.vendor && p.vendor.name, ...p.options.map((o) => o.label)].join(' ').toLowerCase();
@@ -125,7 +140,10 @@
       p.badge && BADGES[p.badge] ? el('span', { class: 'badge ' + p.badge, text: BADGES[p.badge] }) : null
     );
 
-    const maker = vendorName ? el('div', { class: 'maker' },
+    // The maker's logo and name open the maker's page, when that maker has one.
+    const makerHref = ONLY_MAKER ? null : makerPage(vendorName);
+    const maker = vendorName ? el(makerHref ? 'a' : 'div',
+      { class: makerHref ? 'maker maker-link' : 'maker', href: makerHref, 'aria-label': makerHref ? 'About ' + vendorName : null },
       p.vendor.logo_url ? el('img', { class: 'maker-logo', src: p.vendor.logo_url, alt: '', loading: 'lazy' })
                         : el('span', { class: 'maker-initials', 'aria-hidden': 'true', text: initials(vendorName) }),
       el('span', { class: 'maker-name', text: vendorName })
@@ -183,7 +201,7 @@
 
   function renderGrid() {
     const list = visibleProducts();
-    els.status.textContent = list.length ? '' : (state.query ? 'Nothing matches “' + state.query + '” this week.' : 'Nothing here this week.');
+    els.status.textContent = list.length ? '' : ONLY_MAKER ? 'Back soon. Nothing from this maker this week.' : (state.query ? 'Nothing matches “' + state.query + '” this week.' : 'Nothing here this week.');
     els.grid.replaceChildren(...list.map(productCard));
   }
 
@@ -296,7 +314,7 @@
 
   // ---------- wire up ----------
   let searchTimer;
-  els.search.addEventListener('input', () => {
+  if (els.search) els.search.addEventListener('input', () => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => { state.query = els.search.value; renderGrid(); }, 120);
   });
@@ -318,7 +336,13 @@
   renderZones().catch(() => {});
 
   load()
-    .then(() => { renderChips(); renderGrid(); renderBasketBits(); })
+    .then(() => {
+      renderChips(); renderGrid(); renderBasketBits();
+      // Maker page: show the maker's logo next to the page title.
+      const slot = document.getElementById('maker-logo');
+      const mine = ONLY_MAKER && state.products.find((p) => isOnlyMaker(p) && p.vendor.logo_url);
+      if (slot && mine) slot.replaceChildren(el('img', { src: mine.vendor.logo_url, alt: '' }));
+    })
     .catch((err) => {
       console.error(err);
       els.status.textContent = 'Sorry, this week’s items didn’t load. Please refresh the page in a moment.';
