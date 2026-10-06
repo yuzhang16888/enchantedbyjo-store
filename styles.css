@@ -98,6 +98,7 @@ h1, h2, h3 { font-family: var(--display); margin: 0; line-height: 1.15; }
 .zone { background: #fff; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
 .zone-name { font-size: 13.5px; color: var(--muted); }
 .zone-rule { font-size: 17px; font-weight: 600; }
+.zone-fee { font-size: 13.5px; color: var(--muted); }
 .delivery .muted { font-size: 14px; }
 
 /* ---------- Market ---------- */

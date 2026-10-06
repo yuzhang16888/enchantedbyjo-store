@@ -303,6 +303,20 @@
   window.addEventListener('basket:change', () => { renderBasketBits(); renderGrid(); });
   window.addEventListener('storage', () => { renderBasketBits(); renderGrid(); });
 
+  // Delivery panel: read the free-delivery rules and fees from the back room's Delivery zones.
+  async function renderZones() {
+    const box = document.getElementById('zones');
+    if (!box) return;
+    const { data, error } = await sb.from('delivery_zones').select('name, free_over_cents, fee_cents').eq('active', true).order('free_over_cents');
+    if (error || !data || !data.length) return;   // keep the built-in text
+    const dollars = (c) => '$' + (c % 100 ? (c / 100).toFixed(2) : String(c / 100));
+    box.replaceChildren(...data.map((z) => el('div', { class: 'zone' },
+      el('span', { class: 'zone-name', text: z.name }),
+      el('span', { class: 'zone-rule', text: 'Orders over ' + dollars(z.free_over_cents) }),
+      el('span', { class: 'zone-fee', text: z.fee_cents != null ? money(z.fee_cents) + ' delivery below that' : 'Minimum order for delivery' }))));
+  }
+  renderZones().catch(() => {});
+
   load()
     .then(() => { renderChips(); renderGrid(); renderBasketBits(); })
     .catch((err) => {
