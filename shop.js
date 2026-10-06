@@ -25,18 +25,42 @@
     chosen: new Map()      // productId -> optionId
   };
 
-  // Makers who have their own page. "match" is looked for inside the maker's name (lower case).
+  // Makers who have their own page.
+  //   match:   words looked for in the maker's name on the product (lower case)
+  //   brand / generic: only for items listed under "The Japanese Pantry", where the real
+  //   maker is named in the product itself (brand words first, then the kind of product)
   const MAKER_PAGES = [
-    { match: 'rize up', href: 'rize-up-sourdough.html' }
+    { href: "rize-up-sourdough.html", match: ["rize up", "rizeup"], brand: [], generic: [] },
+    { href: "molinari-salame.html", match: ["molinari"], brand: [], generic: [] },
+    { href: "acme-bread.html", match: ["acme"], brand: [], generic: [] },
+    { href: "sciabica-olive-oil.html", match: ["sciabica"], brand: [], generic: [] },
+    { href: "marshalls-farm-honey.html", match: ["marshall"], brand: [], generic: [] },
+    { href: "bayview-pasta.html", match: ["bayview"], brand: [], generic: [] },
+    { href: "nuchas-empanadas.html", match: ["nucha"], brand: [], generic: [] },
+    { href: "volcano-kimchi.html", match: ["volcano"], brand: [], generic: [] },
+    { href: "cloud-and-crumb-madeleines.html", match: ["crumb"], brand: [], generic: [] },
+    { href: "bird-and-bear-coffee.html", match: ["bird and bear", "bird & bear", "bird&bear", "bird + bear"], brand: [], generic: [] },
+    { href: "california-gummy-bears.html", match: ["california gummy"], brand: [], generic: [] },
+    { href: "wadaman-sesame.html", match: ["wadaman"], brand: ["wadaman"], generic: ["sesame"] },
+    { href: "yugeta-soy-sauce.html", match: ["yugeta"], brand: ["yugeta"], generic: ["soy sauce", "shoyu"] },
+    { href: "yamaki-jozo-miso.html", match: ["yamaki"], brand: ["yamaki"], generic: ["ume miso", "miso"] },
+    { href: "kagura-no-sato-yuzu-kosho.html", match: ["kagura", "miyazaki"], brand: ["kagura"], generic: ["yuzu kosho", "yuzu"] }
   ];
-  function makerPage(name) {
-    const n = (name || '').toLowerCase();
-    const m = MAKER_PAGES.find((x) => n.includes(x.match));
-    return m ? m.href : null;
+  function makerFor(p) {
+    const v = ((p.vendor && p.vendor.name) || '').toLowerCase();
+    if (!v) return null;
+    const direct = MAKER_PAGES.find((m) => m.match.some((t) => v.includes(t)));
+    if (direct) return direct;
+    if (!v.includes('japanese pantry')) return null;
+    const text = (p.name + ' ' + (p.description || '')).toLowerCase();
+    const name = p.name.toLowerCase();
+    return MAKER_PAGES.find((m) => m.brand.some((t) => text.includes(t)))
+        || MAKER_PAGES.find((m) => m.generic.some((t) => name.includes(t)))
+        || null;
   }
-  // On a maker's own page, <body data-maker="rize up"> shows only that maker's items.
-  const ONLY_MAKER = (document.body.dataset.maker || '').toLowerCase();
-  const isOnlyMaker = (p) => !ONLY_MAKER || !!(p.vendor && p.vendor.name.toLowerCase().includes(ONLY_MAKER));
+  // On a maker's own page, <body data-maker-page="..."> shows only that maker's items.
+  const ONLY_MAKER = document.body.dataset.makerPage || '';
+  const isOnlyMaker = (p) => { if (!ONLY_MAKER) return true; const m = makerFor(p); return !!m && m.href === ONLY_MAKER; };
 
   const BADGES = { new: 'New', popular: 'Popular', seasonal: 'Seasonal', popup: 'Pop-up' };
 
@@ -141,7 +165,8 @@
     );
 
     // The maker's logo and name open the maker's page, when that maker has one.
-    const makerHref = ONLY_MAKER ? null : makerPage(vendorName);
+    const makerPg = ONLY_MAKER ? null : makerFor(p);
+    const makerHref = makerPg ? makerPg.href : null;
     const maker = vendorName ? el(makerHref ? 'a' : 'div',
       { class: makerHref ? 'maker maker-link' : 'maker', href: makerHref, 'aria-label': makerHref ? 'About ' + vendorName : null },
       p.vendor.logo_url ? el('img', { class: 'maker-logo', src: p.vendor.logo_url, alt: '', loading: 'lazy' })
@@ -340,7 +365,7 @@
       renderChips(); renderGrid(); renderBasketBits();
       // Maker page: show the maker's logo next to the page title.
       const slot = document.getElementById('maker-logo');
-      const mine = ONLY_MAKER && state.products.find((p) => isOnlyMaker(p) && p.vendor.logo_url);
+      const mine = ONLY_MAKER && state.products.find((p) => isOnlyMaker(p) && p.vendor && p.vendor.logo_url);
       if (slot && mine) slot.replaceChildren(el('img', { src: mine.vendor.logo_url, alt: '' }));
     })
     .catch((err) => {

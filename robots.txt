@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /basket
+Sitemap: https://enchantedbyjo.com/sitemap.xml

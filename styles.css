@@ -414,3 +414,6 @@ h1, h2, h3 { font-family: var(--display); margin: 0; line-height: 1.15; }
 .maker-story { display: flex; flex-direction: column; gap: 8px; }
 .maker-story h2, .market-head h2 { font-size: 22px; font-weight: 600; }
 .maker-story p { margin: 0; line-height: 1.65; }
+.maker-more { display: flex; flex-direction: column; gap: 12px; }
+.maker-more h2 { font-size: 22px; font-weight: 600; }
+.maker-more-row { display: flex; flex-wrap: wrap; gap: 8px; }
