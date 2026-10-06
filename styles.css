@@ -417,3 +417,5 @@ h1, h2, h3 { font-family: var(--display); margin: 0; line-height: 1.15; }
 .maker-more { display: flex; flex-direction: column; gap: 12px; }
 .maker-more h2 { font-size: 22px; font-weight: 600; }
 .maker-more-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.heritage-item { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; padding-top: 12px; border-top: 1px solid var(--line); }
+.heritage-item h2 { margin-top: 0; }
