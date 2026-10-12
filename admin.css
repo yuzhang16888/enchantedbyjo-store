@@ -140,3 +140,18 @@ textarea.a-input { padding: 10px 12px; line-height: 1.5; resize: vertical; }
   .a-prep-wrap { border: 0; }
 }
 .a-tag.quiet { background: #F1ECEF; color: #4E4450; }
+
+/* ---------- Stock ---------- */
+.a-stock-line { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.a-stock { font: inherit; font-size: 13px; font-weight: 500; padding: 3px 10px; border-radius: 999px; border: 0; cursor: pointer; white-space: nowrap; }
+.a-stock.ok { background: #E6F0D6; color: #3D5A1C; }
+.a-stock.low { background: #FDE8C8; color: #7A4A0C; }
+.a-stock.out { background: #FBE3E6; color: #9B2335; }
+span.a-stock { cursor: default; }
+.a-low { border-color: #F6D3A2; background: #FFFBF4; }
+.a-low h2 { color: #7A4A0C; }
+.a-low-list { margin: 8px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.a-low-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.a-input.stock { width: 110px; }
+.a-history h3 { font-family: var(--body); font-size: 15px; margin: 10px 0 6px; }
+.a-history ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }

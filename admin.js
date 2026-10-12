@@ -56,6 +56,40 @@
     return el('div', { class: 'a-stat' }, el('span', { class: 'muted small', text: label }),
       el('strong', { text: String(value) }), note ? el('span', { class: 'muted small', text: note }) : null);
   }
+  // ---------- stock helpers ----------
+  async function getLowLevel() {
+    const { data } = await sb.from('settings').select('value').eq('key', 'low_stock_level').maybeSingle();
+    const n = Number(data && data.value);
+    return Number.isFinite(n) ? n : 2;
+  }
+  // Every tracked item (a product without options, or each option) with its count.
+  function trackedItems(p) {
+    const opts = (p.options || []).filter((o) => o.active !== false);
+    if (opts.length) return opts.filter((o) => o.stock_qty != null).map((o) => ({ name: p.name + ', ' + o.label, short: o.label, qty: o.stock_qty, productId: p.id, optionId: o.id }));
+    return p.stock_qty != null ? [{ name: p.name, short: null, qty: p.stock_qty, productId: p.id, optionId: null }] : [];
+  }
+  function lowItems(products, level) {
+    return products.filter((p) => p.on_menu).flatMap(trackedItems).filter((i) => i.qty <= level).sort((a, b) => a.qty - b.qty);
+  }
+  function lowStockCard(items) {
+    if (!items.length) return null;
+    return el('section', { class: 'a-card a-pad a-low' },
+      el('h2', { text: 'Low stock: ' + items.length + (items.length === 1 ? ' item' : ' items') }),
+      el('p', { class: 'muted small', text: 'Still selling. Restock when you can.' }),
+      el('ul', { class: 'a-low-list' }, items.map((i) => el('li', {},
+        el('a', { href: '#product/' + i.productId, text: i.name }),
+        el('span', { class: 'a-stock ' + (i.qty <= 0 ? 'out' : 'low'), text: i.qty <= 0 ? i.qty + ' (out)' : i.qty + ' left' })))));
+  }
+  async function adjustStock(item, after) {
+    const ans = prompt('How many to add to "' + item.name + '"? (Now ' + item.qty + '.)\nUse a minus sign to take some away, e.g. -3 for pop-up sales.');
+    if (ans == null || ans.trim() === '') return;
+    const d = Math.round(Number(ans));
+    if (!Number.isFinite(d) || d === 0) return toast('Please type a number like 5 or -3', true);
+    const q = await run(sb.rpc('add_stock', { p_product: item.productId, p_option: item.optionId, p_delta: d, p_note: null }));
+    toast(item.name + ': now ' + q + ' in stock');
+    if (after) after(q);
+  }
+
   function loading() { main.replaceChildren(el('p', { class: 'status', text: 'Loading\u2026' })); }
 
   // Shrink photos before upload (max 1200px, JPEG) so the shop stays fast.
@@ -117,6 +151,9 @@
     loading();
     const orders = await run(sb.from('orders').select('*, order_items(*)').eq('payment_status', 'paid')
       .order('pickup_date', { ascending: true }).order('id', { ascending: true }).limit(500));
+    const lowOrdersBox = el('div');
+    Promise.all([sb.from('products').select('id, name, on_menu, stock_qty, options:product_options(id, label, active, stock_qty)'), getLowLevel()])
+      .then(([r, level]) => { if (r.data) lowOrdersBox.replaceChildren(...[lowStockCard(lowItems(r.data, level))].filter(Boolean)); });
     const weekAgo = Date.now() - 7 * 864e5;
     const thisWeek = orders.filter((o) => new Date(o.created_at).getTime() >= weekAgo && o.status !== 'cancelled');
     const open = orders.filter((o) => ['new', 'preparing'].includes(o.status));
@@ -224,6 +261,7 @@
 
     main.replaceChildren(
       header('Orders', 'Paid orders, sorted by pickup or delivery date.'),
+      lowOrdersBox,
       el('div', { class: 'a-stats' },
         statCard('To prepare', open.length, 'New or preparing'),
         statCard('Ready', ready.length, 'Waiting for pickup or delivery'),
@@ -247,7 +285,7 @@
       run(sb.from('categories').select('*').order('sort_order')),
       run(sb.from('products').select('*, vendor:vendors(id, name), category:categories(id, name), options:product_options(*)').order('sort_order').order('name'))
     ]);
-    cache = { vendors: v, categories: c, products: p };
+    cache = { vendors: v, categories: c, products: p, level: await getLowLevel() };
   }
   let productFilter = { q: '', cat: '', showOff: true };
   async function viewProducts() {
@@ -269,7 +307,8 @@
         el('div', { class: 'a-prod-info' },
           el('strong', { text: p.name }),
           el('span', { class: 'muted small', text: [p.vendor && p.vendor.name, p.category && p.category.name].filter(Boolean).join(', ') || 'No maker or category yet' }),
-          el('span', { class: 'small', text: priceText(p) + (p.taxable ? '  \u00b7 taxed' : '') + ((p.options || []).length ? '  \u00b7 ' + p.options.length + ' options' : '') })),
+          el('span', { class: 'small', text: priceText(p) + (p.taxable ? '  \u00b7 taxed' : '') + ((p.options || []).length ? '  \u00b7 ' + p.options.length + ' options' : '') }),
+          stockLine(p)),
         el('div', { class: 'a-prod-switches' },
           toggle('On menu', p.on_menu, async (v, box) => {
             try { await run(sb.from('products').update({ on_menu: v }).eq('id', p.id), v ? 'Back on the menu' : 'Taken off the menu'); p.on_menu = v; draw(); }
@@ -281,6 +320,23 @@
           })),
         el('a', { class: 'a-btn', href: '#product/' + p.id, text: 'Edit' }));
     }
+    function stockLine(p) {
+      const items = trackedItems(p);
+      if (!items.length) return null;
+      const box = el('span', { class: 'a-stock-line' });
+      items.forEach((i) => {
+        const cls = i.qty <= 0 ? 'out' : i.qty <= cache.level ? 'low' : 'ok';
+        box.append(el('button', { type: 'button', class: 'a-stock ' + cls, title: 'Add or take away stock',
+          text: (i.short ? i.short + ': ' : 'Stock: ') + i.qty + (cls === 'low' ? ' (low)' : cls === 'out' ? ' (out)' : ''),
+          onclick: () => adjustStock(i, (q) => {
+            if (i.optionId) p.options.find((o) => o.id === i.optionId).stock_qty = q; else p.stock_qty = q;
+            draw(); drawLow();
+          }) }));
+      });
+      return box;
+    }
+    const lowBox = el('div');
+    function drawLow() { lowBox.replaceChildren(...[lowStockCard(lowItems(cache.products, cache.level))].filter(Boolean)); }
     function draw() {
       productFilter.q = search.value; productFilter.cat = catSel.value;
       const q = search.value.trim().toLowerCase();
@@ -296,9 +352,10 @@
     main.replaceChildren(
       header('Products', onMenu + ' on the menu, ' + (cache.products.length - onMenu) + ' off the menu. Switches save instantly.',
         el('a', { class: 'a-btn primary', href: '#product/new', text: '+ New product' })),
+      lowBox,
       el('div', { class: 'a-toolbar' }, search, catSel, offToggle),
       list);
-    draw();
+    drawLow(); draw();
   }
 
   async function viewProductEditor(id) {
@@ -329,6 +386,11 @@
     const taxable = toggle('Taxable (not food)', p.taxable);
     const onMenu = toggle('On this week\u2019s menu', p.on_menu);
     const soldOut = toggle('Sold out', p.sold_out);
+    // Stock: empty = not tracked. Remember the loaded counts so only real changes are saved (and logged).
+    const loadedStock = { product: p.stock_qty ?? null };
+    options.forEach((o) => { o._loadedStock = o.stock_qty ?? null; });
+    const stockIn = input({ value: p.stock_qty == null ? '' : String(p.stock_qty), inputmode: 'numeric', placeholder: 'Not tracked', 'aria-label': 'In stock' });
+    const parseStock = (v) => { const t = String(v).trim(); if (t === '') return null; const n = Math.round(Number(t)); return Number.isFinite(n) ? n : NaN; };
 
     const optBox = el('div', { class: 'a-options' });
     function drawOptions() {
@@ -336,12 +398,15 @@
         ...options.map((o, i) => {
           const label = input({ value: o.label || '', placeholder: 'Option name', 'aria-label': 'Option name' });
           const oprice = input({ value: dollars(o.price_cents), inputmode: 'decimal', placeholder: '0.00', 'aria-label': 'Option price', class: 'a-input price' });
+          const ostock = input({ value: o.stock_qty == null ? '' : String(o.stock_qty), inputmode: 'numeric', placeholder: 'Not tracked', 'aria-label': 'Stock for this option', class: 'a-input stock' });
+          ostock.addEventListener('input', () => { o.stock_qty = parseStock(ostock.value); });
           label.addEventListener('input', () => { o.label = label.value; });
           oprice.addEventListener('input', () => { o.price_cents = toCents(oprice.value); });
           return el('div', { class: 'a-opt-row' },
             photoPicker(o.photo_url, 'options', (u) => { o.photo_url = u; }, { small: true }),
             el('div', { class: 'a-opt-fields' }, label, el('div', { class: 'a-opt-line' }, el('span', { class: 'muted', text: '$' }), oprice,
-              toggle('Showing', o.active !== false, (v) => { o.active = v; }))),
+              toggle('Showing', o.active !== false, (v) => { o.active = v; })),
+              el('div', { class: 'a-opt-line' }, el('span', { class: 'muted small', text: 'In stock' }), ostock)),
             el('div', { class: 'a-opt-move' },
               el('button', { type: 'button', class: 'a-btn small quiet', 'aria-label': 'Move up', text: '\u2191', disabled: i === 0, onclick: () => { [options[i - 1], options[i]] = [options[i], options[i - 1]]; drawOptions(); } }),
               el('button', { type: 'button', class: 'a-btn small quiet', 'aria-label': 'Move down', text: '\u2193', disabled: i === options.length - 1, onclick: () => { [options[i + 1], options[i]] = [options[i], options[i + 1]]; drawOptions(); } }),
@@ -351,6 +416,18 @@
     }
     drawOptions();
 
+    const historyBox = el('div', { class: 'a-history' });
+    if (!isNew) {
+      sb.from('stock_movements').select('*').eq('product_id', p.id).order('created_at', { ascending: false }).limit(15).then(({ data }) => {
+        if (!data || !data.length) return;
+        const why = { restock: 'Restocked', adjust: 'Adjusted', order: 'Order', cancel: 'Cancelled order', untrack: 'Stopped tracking' };
+        const optName = (id) => { const o = options.find((x) => x.id === id); return o ? o.label + ': ' : ''; };
+        historyBox.replaceChildren(el('h3', { text: 'Recent changes' }), el('ul', {}, data.map((m) => el('li', {},
+          el('span', { class: 'muted small', text: when(m.created_at) + '  ' }),
+          optName(m.option_id) + (why[m.reason] || m.reason) + (m.order_id ? ' #' + m.order_id : '') +
+          (m.change != null ? ' ' + (m.change > 0 ? '+' : '') + m.change : '') + (m.qty_after != null ? ' \u2192 ' + m.qty_after : '')))));
+      });
+    }
     const others = cache.products.filter((x) => x.id !== p.id).sort((a, b) => a.name.localeCompare(b.name));
     const pairSelects = [0, 1, 2].map((i) => select([['', i === 0 ? 'No pick' : 'No pick'], ...others.map((x) => [x.id, x.name + (x.vendor ? ' (' + x.vendor.name + ')' : '')])], pairs[i] || '', { 'aria-label': 'Goes well with, pick ' + (i + 1) }));
 
@@ -364,6 +441,8 @@
       const basePrice = toCents(price.value);
       if (!options.length && !(basePrice > 0)) problems.push('a price');
       options.forEach((o, i) => { if (!String(o.label || '').trim() || !(o.price_cents > 0)) problems.push('a name and price for option ' + (i + 1)); });
+      if (!options.length && Number.isNaN(parseStock(stockIn.value))) problems.push('a whole number for stock (or leave it empty)');
+      options.forEach((o, i) => { if (Number.isNaN(o.stock_qty)) problems.push('a whole number for option ' + (i + 1) + '\u2019s stock'); });
       if (problems.length) { err.textContent = 'Please add ' + problems.join(', ') + '.'; err.hidden = false; return; }
       saveBtn.disabled = true; saveBtn.textContent = 'Saving\u2026';
       try {
@@ -387,6 +466,17 @@
           else o.id = (await run(sb.from('product_options').insert(orow).select('id').single())).id;
         }
         removedOptions.length = 0;
+
+        // Stock changes go through set_stock so they're logged in the history.
+        if (!options.length) {
+          const q = parseStock(stockIn.value);
+          if (q !== loadedStock.product) { await run(sb.rpc('set_stock', { p_product: pid, p_option: null, p_qty: q, p_note: null })); loadedStock.product = q; }
+        } else {
+          for (const o of options) {
+            const q = o.stock_qty ?? null;
+            if (q !== (o._loadedStock ?? null)) { await run(sb.rpc('set_stock', { p_product: pid, p_option: o.id, p_qty: q, p_note: null })); o._loadedStock = q; }
+          }
+        }
 
         const picked = [...new Set(pairSelects.map((s) => s.value).filter(Boolean))];
         await run(sb.from('pairings').delete().eq('product_id', pid));
@@ -427,6 +517,10 @@
             photoPicker(photo, 'products', (u) => { photo = u; }),
             el('p', { class: 'muted small', text: 'Square photos look best. Big photos are shrunk automatically.' })),
           el('section', { class: 'a-card a-pad' }, el('h2', { text: 'Availability' }), onMenu, soldOut, taxable),
+          el('section', { class: 'a-card a-pad' }, el('h2', { text: 'Stock' }),
+            options.length ? el('p', { class: 'muted small', text: 'Each option has its own "In stock" box on the left. Leave it empty to not track it.' })
+              : field('In stock', stockIn, 'Leave empty to not track. Paid orders count it down; the shop keeps selling at 0, and you get a reminder email.'),
+            historyBox),
           el('section', { class: 'a-card a-pad' }, el('h2', { text: 'Goes well with' }),
             el('p', { class: 'muted small', text: 'Shown in the Added to basket pop-up. Left empty, the shop suggests items from the same maker or category.' }),
             ...pairSelects),
@@ -666,6 +760,7 @@
     drawClosed();
     const closedIn = input({ type: 'date', 'aria-label': 'Add a closed date' });
 
+    const lowIn = input({ value: String(setting('low_stock_level') ?? 2), inputmode: 'numeric', class: 'a-input small-in', 'aria-label': 'Low stock level' });
     const tax = input({ value: String(setting('tax_rate') ?? ''), inputmode: 'decimal', class: 'a-input small-in', 'aria-label': 'Sales tax rate' });
 
     // Welcome email
@@ -765,6 +860,13 @@
           if (!closedIn.value || closed.includes(closedIn.value)) return;
           closed = [...closed, closedIn.value].sort(); await saveClosed(); closedIn.value = ''; drawClosed();
         } }))),
+      el('section', { class: 'a-card a-pad' }, el('h2', { text: 'Stock reminders' }),
+        el('div', { class: 'a-row' }, el('label', { class: 'a-inline' }, 'Remind me at ', lowIn, ' left or fewer'),
+          el('button', { type: 'button', class: 'a-btn', text: 'Save', onclick: () => {
+            const n = Math.round(Number(lowIn.value)); if (!(n >= 0 && n <= 100)) return toast('Please enter a number like 2', true);
+            run(sb.from('settings').upsert({ key: 'low_stock_level', value: n }), 'Reminder level saved');
+          } })),
+        el('p', { class: 'muted small', text: 'You get one email when a tracked item drops to this number. The shop keeps selling either way.' })),
       el('section', { class: 'a-card a-pad' }, el('h2', { text: 'Sales tax' }),
         el('div', { class: 'a-row' }, el('label', { class: 'a-inline' }, 'Rate ', tax, ' %'),
           el('button', { type: 'button', class: 'a-btn', text: 'Save', onclick: () => {
